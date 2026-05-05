@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Fuzzy Search · Roxin Chang</title>
+<meta name="description" content="Case study of an 18-month enterprise multilingual smart knowledge retrieval system (NLP + Vector Search + Elasticsearch) delivered as Lead PM and Product Owner.">
+<meta property="og:title" content="Project Fuzzy Search — Case Study by Roxin Chang">
+<meta property="og:description" content="Enterprise multilingual smart knowledge retrieval system. 85% efficiency gain, ROI within 6 months, 4 languages, 12-person team.">
+<meta property="og:type" content="article">
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --surface-2: #f5f1ec;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-mute: #7a7a7a;
+    --accent: #d97757;
+    --accent-soft: #fde8df;
+    --accent-deep: #b85a3a;
+    --line: #e8e4de;
+    --max: 920px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+
+  /* Top bar */
+  .topbar {
+    border-bottom: 1px solid var(--line);
+    padding: 16px 0;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: saturate(180%) blur(12px);
+    background: rgba(255, 255, 255, 0.85);
+  }
+  .topbar .inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .topbar .brand { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+  .topbar .brand span { color: var(--ink-mute); font-weight: 400; }
+  .topbar .links a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 14px;
+    margin-left: 18px;
+    transition: color 0.2s;
+  }
+  .topbar .links a:hover { color: var(--accent); }
+
+  /* Hero */
+  .hero {
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow {
+    display: inline-block;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    background: var(--accent-soft);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-size: clamp(34px, 5.5vw, 52px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .subtitle {
+    font-size: clamp(18px, 2.4vw, 22px);
+    color: var(--ink-soft);
+    line-height: 1.45;
+    max-width: 680px;
+    margin-bottom: 32px;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px 28px;
+    padding: 24px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 32px;
+  }
+  .meta-item .label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .meta-item .value {
+    font-size: 15px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  /* Sections */
+  section { padding: 64px 0; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: none; }
+  h2 {
+    font-size: clamp(24px, 3.4vw, 32px);
+    letter-spacing: -0.015em;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  h2 .num {
+    color: var(--accent);
+    font-weight: 600;
+    margin-right: 12px;
+    font-feature-settings: "tnum";
+  }
+  .lede {
+    font-size: 17px;
+    color: var(--ink-soft);
+    margin-bottom: 32px;
+    max-width: 680px;
+  }
+  p { margin-bottom: 16px; color: var(--ink-soft); font-size: 16px; }
+  p strong { color: var(--ink); font-weight: 600; }
+
+  /* Impact strip */
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+  }
+  .impact-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+  }
+  .impact-card .num {
+    display: block;
+    font-size: clamp(28px, 3.6vw, 38px);
+    font-weight: 700;
+    color: var(--accent-deep);
+    line-height: 1;
+    margin-bottom: 8px;
+    font-feature-settings: "tnum";
+    letter-spacing: -0.02em;
+  }
+  .impact-card .lab {
+    font-size: 13px;
+    color: var(--ink-mute);
+    line-height: 1.4;
+  }
+
+  /* Two-column lists */
+  .col-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .card .stat {
+    color: var(--accent-deep);
+    font-weight: 700;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .card p { font-size: 15px; margin-bottom: 0; }
+
+  /* Three-step pipeline */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .pipeline .step {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+  }
+  .pipeline .step .step-num {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 28px;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .pipeline h3 { font-size: 16px; margin-bottom: 8px; font-weight: 700; }
+  .pipeline p { font-size: 14px; margin: 0; color: var(--ink-soft); }
+  @media (max-width: 720px) {
+    .pipeline { grid-template-columns: 1fr; }
+  }
+
+  /* Phase timeline */
+  .phases { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    padding: 20px 24px;
+  }
+  .phase .when {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-deep);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .phase h3 { font-size: 17px; margin-bottom: 6px; font-weight: 700; }
+  .phase p { font-size: 15px; margin: 0; }
+
+  /* Lists */
+  ul.bullets { list-style: none; padding: 0; }
+  ul.bullets li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+    color: var(--ink-soft);
+    font-size: 16px;
+  }
+  ul.bullets li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  ul.bullets li strong { color: var(--ink); font-weight: 600; }
+
+  /* Pull quote */
+  .pull {
+    border-left: 3px solid var(--accent);
+    padding: 4px 0 4px 24px;
+    margin: 24px 0;
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+
+  /* Architecture diagram */
+  .arch {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 32px 24px;
+    margin-top: 8px;
+  }
+  .arch-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    align-items: stretch;
+  }
+  .arch-block {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+  }
+  .arch-block .icon {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+  .arch-block h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--accent-deep);
+  }
+  .arch-block p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.4;
+  }
+  .arch-arrow {
+    text-align: center;
+    color: var(--accent);
+    font-size: 20px;
+    margin: 8px 0;
+  }
+  @media (max-width: 720px) {
+    .arch-row { grid-template-columns: 1fr; }
+  }
+
+  /* Footer */
+  footer {
+    padding: 48px 0 56px;
+    background: var(--surface-2);
+    border-top: 1px solid var(--line);
+    text-align: center;
+  }
+  footer h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  footer p { font-size: 15px; }
+  footer a {
+    color: var(--accent-deep);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  footer a:hover { text-decoration: underline; }
+  .foot-links {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  /* Disclaimer */
+  .disclaimer {
+    font-size: 13px;
+    color: var(--ink-mute);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin-top: 32px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="container inner">
+    <div class="brand">Roxin Chang <span>· Case Study</span></div>
+    <div class="links">
+      <a href="#impact">Impact</a>
+      <a href="#challenge">Challenge</a>
+      <a href="#solution">Solution</a>
+      <a href="#results">Results</a>
+    </div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="container">
+    <span class="eyebrow">Featured Project · 2024–2025</span>
+    <h1>Project Fuzzy Search</h1>
+    <p class="subtitle">Building an enterprise-grade multilingual smart knowledge retrieval system from scratch — bridging Traditional Chinese, Simplified Chinese, English, and Korean with NLP, vector search, and an API-first architecture.</p>
+
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="label">My Role</div>
+        <div class="value">Lead Project Manager &amp; Product Owner</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">Duration</div>
+        <div class="value">18 months · Jan 2024 – Jun 2025</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">Team</div>
+        <div class="value">12 cross-functional · 4 departments</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">Industry</div>
+        <div class="value">Global Gaming &amp; Customer Operations</div>
+      </div>
+    </div>
+
+    <div class="badges">
+      <span class="badge">NLP</span>
+      <span class="badge">Vector Search</span>
+      <span class="badge">Elasticsearch</span>
+      <span class="badge">RESTful API</span>
+      <span class="badge">API-First</span>
+      <span class="badge">Scrum / Agile</span>
+      <span class="badge">Multilingual</span>
+    </div>
+  </div>
+</header>
+
+<section id="impact">
+  <div class="container">
+    <h2><span class="num">01</span>Impact at a Glance</h2>
+    <p class="lede">After 18 months, every quantitative target was met or exceeded. The bigger story, however, was qualitative: cross-regional teams stopped reinventing the wheel.</p>
+
+    <div class="impact-grid">
+      <div class="impact-card">
+        <span class="num">85%</span>
+        <span class="lab">Retrieval efficiency improvement (5 min → 45 sec)</span>
+      </div>
+      <div class="impact-card">
+        <span class="num">40%→5%</span>
+        <span class="lab">Search-failure rate dropped</span>
+      </div>
+      <div class="impact-card">
+        <span class="num">6 mo</span>
+        <span class="lab">Full ROI recovery</span>
+      </div>
+      <div class="impact-card">
+        <span class="num">2 wks</span>
+        <span class="lab">French module integration<br>(vs. 2-month original estimate)</span>
+      </div>
+      <div class="impact-card">
+        <span class="num">4 / 4</span>
+        <span class="lab">Target languages live<br>(TC · SC · EN · KO)</span>
+      </div>
+      <div class="impact-card">
+        <span class="num">100%</span>
+        <span class="lab">Goal achievement rate on key metrics</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="container">
+    <h2><span class="num">02</span>The Challenge</h2>
+    <p class="lede">Rapid expansion into APAC and EMEA had created a sprawling, fragmented internal knowledge base. CS, ops, and tech teams across regions were drowning in language barriers and tagging chaos.</p>
+
+    <div class="col-2">
+      <div class="card">
+        <span class="stat">40% search-failure rate</span>
+        <h3>Low search efficiency</h3>
+        <p>The legacy system supported only exact keyword matching — no tolerance for typos, homophones, or vague concepts. Average single retrieval took over 5 minutes and required multiple keyword combinations.</p>
+      </div>
+      <div class="card">
+        <span class="stat">4 isolated language families</span>
+        <h3>Cross-language information barriers</h3>
+        <p>Taiwanese, Chinese, Korean, and English-speaking teams couldn’t search documents written by one another. A problem solved in Taiwan would be re-solved in Korea three months later — knowledge trapped in language cages.</p>
+      </div>
+      <div class="card">
+        <span class="stat">Hardcoded everything</span>
+        <h3>Insufficient scalability</h3>
+        <p>The old architecture required extensive re-writing every time a new language was added. With European business expansion (FR / DE / ES) on the horizon, the existing system would not survive.</p>
+      </div>
+      <div class="card">
+        <span class="stat">12+ source systems</span>
+        <h3>Data silos &amp; inconsistent formats</h3>
+        <p>Knowledge was scattered across Wiki, Confluence, Jira, PDFs, spreadsheets — with conflicting metadata, garbled titles, and outdated documents misleading users every day.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2><span class="num">03</span>My Role &amp; Responsibilities</h2>
+    <p class="lede">As Lead PM and Product Owner, I owned every critical decision from business case through MVP launch — translating fragmented business pain into a technical roadmap and a coherent execution plan.</p>
+
+    <div class="col-2">
+      <div class="card">
+        <h3>1 · Business Case &amp; Budget Acquisition</h3>
+        <p>Authored the comprehensive business proposal and ROI model (time-saved × labor-cost × team-size). Defended the case to senior leadership over multiple rounds, securing budget and headcount.</p>
+      </div>
+      <div class="card">
+        <h3>2 · Data Governance &amp; Content Planning</h3>
+        <p>Defined a brand-new Metadata Schema as the cornerstone of search quality. Coordinated CS, ops, and engineering to unify tagging logic, naming conventions, and unstructured-data cleansing standards.</p>
+      </div>
+      <div class="card">
+        <h3>3 · Product Specification</h3>
+        <p>Designed the core Fuzzy Logic strategy (character tolerance, synonym handling), multi-language weighting configuration, and detailed RESTful API contracts to enable future expansion.</p>
+      </div>
+      <div class="card">
+        <h3>4 · Cross-Departmental Team Building</h3>
+        <p>Built a high-performing Scrum squad from scratch: backend, data science, frontend, and a localization team across 4 language families — and the communication rituals that kept them in sync.</p>
+      </div>
+    </div>
+
+    <div class="pull">“A successful product manager isn’t a collector of requirements — they’re a translator of vision: turning business goals into technical roadmaps, user pain into product features, and disparate cross-departmental languages into a unified action plan.”</div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="container">
+    <h2><span class="num">04</span>System Architecture</h2>
+    <p class="lede">We adopted an API-First, modular philosophy. Every design decision balanced current performance against future expansion — so adding a new language wouldn’t require rewriting the core.</p>
+
+    <div class="arch">
+      <div class="arch-row">
+        <div class="arch-block">
+          <div class="icon">🔍</div>
+          <h4>Core Search Engine</h4>
+          <p>Elasticsearch + vector database for semantic search and intelligent ranking.</p>
+        </div>
+        <div class="arch-block">
+          <div class="icon">🌐</div>
+          <h4>Language Middleware</h4>
+          <p>TC/SC conversion, word segmentation, and synonym mapping. New languages plug in here.</p>
+        </div>
+        <div class="arch-block">
+          <div class="icon">🔌</div>
+          <h4>Expansion API</h4>
+          <p>RESTful, standardized contracts so any external system can integrate search capabilities.</p>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <p style="text-align:center; margin: 0; font-size: 14px; color: var(--ink-mute);">Indexing layer normalizes content during ingestion · Search-time queries are uniformly converted before retrieval</p>
+    </div>
+
+    <h2 style="margin-top: 56px;">Multilingual Precision: Three-Pronged Solution</h2>
+    <p class="lede">Making fuzzy search both <strong>smart</strong> and <strong>accurate</strong> in CJK languages is its own discipline. Set the fault tolerance too loose and users drown in noise; too tight and the old problem returns.</p>
+
+    <div class="pipeline">
+      <div class="step">
+        <span class="step-num">1</span>
+        <h3>Enterprise-specific synonym dictionary</h3>
+        <p>Senior staff across language teams co-authored an internal vocabulary including company-specific terminology — so “WoW”, “World of Warcraft”, and the Traditional/Simplified Chinese variants all resolve to the same token.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <h3>Intelligent weight adjustment</h3>
+        <p>Multi-level ranking strategy: exact title match (weight 10) > fuzzy title (5) > exact body (3) > fuzzy body (1). Dynamically tuned by document freshness and click-through rate.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <h3>TC / SC conversion middleware</h3>
+        <p>Both indexes are created in parallel during ingestion; queries are uniformly normalized at search time, so a user typing 「滑鼠」 finds documents tagged 「鼠标」 — seamlessly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2><span class="num">05</span>Data Quality: From Garbage In, Garbage Out</h2>
+    <p class="lede">Even the most sophisticated search engine produces garbage if the underlying data is inconsistent. Resolving the data layer was as much of the work as building the engine.</p>
+
+    <ul class="bullets">
+      <li><strong>Identified data sources</strong> across 12+ systems and built a complete data map</li>
+      <li><strong>Established an ETL pipeline</strong> for automated extraction, transformation, and loading</li>
+      <li><strong>Automated tagging via NLP</strong> (TF-IDF + keyword extraction) classified 60–70% of historical documents, sharply reducing manual workload</li>
+      <li><strong>Lightweight manual review</strong> for the remaining 30–40%, enabling content owners to confirm or correct in-system</li>
+      <li><strong>Cleansing pipeline</strong> retired ~40% of low-value content (3+ years stale, zero clicks)</li>
+      <li><strong>“New Document Onboarding Guidelines”</strong> enforced metadata at the source — preventing future data chaos</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2><span class="num">06</span>MVP Plan &amp; Schedule</h2>
+    <p class="lede">Two-week Sprint cadence within an 18-month project, divided into three clearly scoped phases — each with its own success criteria.</p>
+
+    <div class="phases">
+      <div class="phase">
+        <div class="when">Phase 1 · Months 1–3</div>
+        <h3>Infrastructure Build-Out</h3>
+        <p>Stand up the core search engine for TC, SC, and English. Implement basic 2-character fault tolerance. Replace the legacy system without disrupting business continuity.</p>
+      </div>
+      <div class="phase">
+        <div class="when">Phase 2 · Months 4–5</div>
+        <h3>Korean Language Integration</h3>
+        <p>Integrate the Korean morphological analyzer and optimize cross-lingual search. Acceptance criterion: 80% adoption by the Korean team — validating the multi-language architecture.</p>
+      </div>
+      <div class="phase">
+        <div class="when">Phase 3 · Month 6</div>
+        <h3>API Exposure</h3>
+        <p>Expose the RESTful API for downstream systems (CRM, ticketing). Fully document the API spec to prepare for European-language expansion.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2><span class="num">07</span>Team Structure &amp; Communication</h2>
+    <p class="lede">A successful project depends 70% on team collaboration efficiency. We adopted a Squad model — lean but cross-functional — with rituals designed for clarity, not theater.</p>
+
+    <div class="col-2">
+      <div class="card">
+        <h3>Squad composition</h3>
+        <p><strong>PM (Me) · Tech Lead · 2 Backend Engineers · 1 Frontend Engineer · 1 Data Engineer · part-time Linguistic Specialists</strong> from each language operations team. Cross-functional pairing built shared ownership across disciplines.</p>
+      </div>
+      <div class="card">
+        <h3>Bi-weekly Demo Day</h3>
+        <p>Stakeholders (CS Manager, Ops Manager, IT Manager) tested the latest build live and contributed “Bad Cases” — failed searches that became next sprint’s optimization targets. A positive feedback loop.</p>
+      </div>
+      <div class="card">
+        <h3>Daily standup · 15 min</h3>
+        <p>Sync on yesterday/today/blockers. Brief enough that it stayed valuable; structured enough that no one fell out of step.</p>
+      </div>
+      <div class="card">
+        <h3>API Integration Workshop</h3>
+        <p>Mid-project, we pre-emptively invited European IT teams (future API consumers) to walk through the API spec. This forward-looking move turned them into allies and prevented expensive rework later.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="results">
+  <div class="container">
+    <h2><span class="num">08</span>Results &amp; Lasting Impact</h2>
+    <p class="lede">The headline numbers were the easy part. The real win was changing how cross-regional teams treated knowledge.</p>
+
+    <div class="col-2">
+      <div class="card">
+        <h3>Breaking knowledge silos</h3>
+        <p>Best practices from Taiwan got adopted by the Korean team within a sprint. Chinese technical documents became retrievable by European and American engineers. Cross-regional collaboration efficiency lifted noticeably.</p>
+      </div>
+      <div class="card">
+        <h3>Establishing an enterprise standard</h3>
+        <p>The “Search-as-a-Service” pattern became the internal reference architecture for downstream systems integrating search — laying foundation for future GenAI and knowledge-graph initiatives.</p>
+      </div>
+      <div class="card">
+        <h3>Validated scalability</h3>
+        <p>The European team integrated the French module in <strong>2 weeks</strong> after handover (vs. 2 months estimated). The API-First philosophy paid for itself the moment real expansion happened.</p>
+      </div>
+      <div class="card">
+        <h3>What I took away</h3>
+        <p>Balancing technical feasibility against business value, optimizing inside resource constraints, motivating a team under pressure — and seeing what is possible when 12 people pull toward one common goal.</p>
+      </div>
+    </div>
+
+    <div class="pull">“The greatest achievement of this project wasn’t the technical breakthrough. It was the cultural change — making cross-language, cross-regional teams realize that knowledge shouldn’t be confined by language and systems, but should flow freely and create value.”</div>
+
+    <div class="disclaimer">
+      <strong>Note:</strong> This case study describes work delivered while at a global gaming and entertainment organization. Specific company names, internal system identifiers, and proprietary details have been anonymized. All metrics, architecture decisions, and outcomes are accurate as delivered.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <h3>Want to talk about scaling operations or AI-enabled workflows?</h3>
+    <p>I’m open to fully remote senior PM, Operations, and AI Strategy roles.</p>
+    <div class="foot-links">
+      <a href="mailto:roxinch@gmail.com">roxinch@gmail.com</a>
+      <a href="https://www.linkedin.com/in/roxinchang/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://github.com/roxinch" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
