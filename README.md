@@ -22,6 +22,8 @@ Roxin Chang — Senior Program Manager · Global Operations & GenAI Workflow Aut
 
 - LinkedIn: https://www.linkedin.com/in/roxinchang/
 - Email: roxinch@gmail.com
+- Other case study:https://roxinch.github.io/cross-border-fan-economy/
+- https://roxinch.github.io/cross-border-player-surge/
 
 ## Confidentiality
 
